@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { Form, Button } from 'react-bootstrap'
+import { Form, Button, Alert } from 'react-bootstrap'
 
 // name -> string
 // phone -> string/number
@@ -34,9 +34,46 @@ class Reservation extends Component {
     },
   }
 
+  submitReservation = (e) => {
+    e.preventDefault()
+    // facciamo la chiamata POST
+    fetch('https://striveschool-api.herokuapp.com/api/reservation', {
+      method: 'POST',
+      body: JSON.stringify(this.state.reservation),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          // prenotazione salvata
+          alert('Prenotazione inviata!')
+          // svuotare i campi del form!
+          // per svuotare il form, devo solo resettare lo stato!
+          // ogni campo del form è collegato alla propria proprietà in "reservation"
+          this.setState({
+            reservation: {
+              name: '',
+              phone: '',
+              numberOfPeople: '1',
+              smoking: false,
+              dateTime: '',
+              specialRequests: '',
+            },
+          })
+        } else {
+          // errore nella prenotazione
+          throw new Error('Errore nel salvataggio della prenotazione')
+        }
+      })
+      .catch((err) => {
+        console.log('ERRORE!!', err)
+      })
+  }
+
   render() {
     return (
-      <Form className="text-start">
+      <Form className="text-start" onSubmit={this.submitReservation}>
         <Form.Group className="mb-3">
           <Form.Label>Nome prenotazione</Form.Label>
           <Form.Control
@@ -62,6 +99,14 @@ class Reservation extends Component {
             }
           />
         </Form.Group>
+
+        {/* OPERATORE && (short-circuit) */}
+
+        {/* se ti chiami "Pupo" o se ti chiami "Gigi" mostra l'Alert */}
+        {(this.state.reservation.name === 'Pupo' ||
+          this.state.reservation.name === 'Gigi') && (
+          <Alert variant="success">Bel nome!</Alert>
+        )}
 
         <Form.Group className="mb-3">
           <Form.Label>Numero di telefono</Form.Label>
@@ -121,6 +166,31 @@ class Reservation extends Component {
             }}
           />
         </Form.Group>
+
+        {/* generalmente le graffe servono per interpolare della logica nel JSX */}
+        {console.log('CIAO')}
+
+        {/* oltre allo short-circuit è possibile utilizzare il ternary operator*/}
+        {/* ? : */}
+        {/* per simulare un if/else */}
+        {this.state.reservation.smoking === true ? (
+          <Form.Group className="mb-3">
+            <Form.Label>Come mai?</Form.Label>
+            <Form.Select aria-label="Perchè fumi">
+              <option>Fumavano i miei</option>
+              <option>Abitudine tra amici</option>
+              <option>Non lo so</option>
+            </Form.Select>
+          </Form.Group>
+        ) : (
+          <Form.Group className="mb-3">
+            <Form.Label>Hai mai pensato di cominciare?</Form.Label>
+            <Form.Select aria-label="Perchè non fumi">
+              <option>Si</option>
+              <option>No</option>
+            </Form.Select>
+          </Form.Group>
+        )}
 
         <Form.Group className="mb-3">
           <Form.Label>Quando arrivi?</Form.Label>
